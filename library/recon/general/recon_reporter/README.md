@@ -15,6 +15,8 @@ Recon Reporter is a recon payload that captures the selected AP/client metadata 
 - Change detection vs previous run with optional alerts
 - Optional environment dump for troubleshooting
 - Works with AP selection, client selection, or both
+- Interactive configuration with saved settings
+- Sampling mode (multiple snapshots over time)
 
 ## Requirements
 
@@ -27,13 +29,15 @@ Copy the payload directory to your Pager:
 
 ```bash
 scp -r library/recon/general/recon_reporter root@172.16.42.1:/root/payloads/recon/general/
-chmod +x /root/payloads/recon/general/recon_reporter/payload.sh
+chmod +x /root/payloads/recon/general/recon_reporter/payload
 ```
 
 ## Configuration
 
-Edit `/root/payloads/recon/general/recon_reporter/payload.sh`:
+Edit `/root/payloads/recon/general/recon_reporter/payload`:
 
+- `INTERACTIVE_CONFIG`: Prompt for runtime options
+- `SAVE_CONFIG`: Persist options via `PAYLOAD_SET_CONFIG`
 - `OUTPUT_DIR`: Where reports are stored
 - `PER_TARGET_DIR`: Store output under `OUTPUT_DIR/<target_id>/`
 - `ENABLE_JSON`: Toggle per-run JSON output
@@ -41,7 +45,10 @@ Edit `/root/payloads/recon/general/recon_reporter/payload.sh`:
 - `INCLUDE_ENV_DUMP`: Save raw `_RECON_*` vars for debugging
 - `ENABLE_DIFF`: Compare against last run for that target
 - `ALERT_ON_CHANGES`: Show alert when changes detected
+- `IGNORE_DIFF_KEYS`: Comma list of fields to ignore in diff
 - `CLEANUP_DAYS`: Auto-delete old JSON/ENV/changes (0 = disabled)
+- `SAMPLE_COUNT`: Number of samples per run
+- `SAMPLE_INTERVAL`: Seconds between samples
 
 ## Usage
 
@@ -63,6 +70,7 @@ Edit `/root/payloads/recon/general/recon_reporter/payload.sh`:
 
 - If reports are empty, check the env dump to see which `_RECON_*` variables your firmware provides.
 - Ensure the payload is launched from the Recon UI (not the general payload list).
+- Sampling uses the current recon selection context; keep Recon running to capture updated metrics.
 
 ## Legal
 
