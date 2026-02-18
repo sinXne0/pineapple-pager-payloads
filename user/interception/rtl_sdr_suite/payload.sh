@@ -25,6 +25,12 @@ TCP_PID_FILE="/tmp/rtl_tcp.pid"
 POWER_PID_FILE="/tmp/rtl_power.pid"
 TCP_LOG="/tmp/rtl_tcp.log"
 
+ADSB_GAIN=40
+ADSB_PPM=0
+ADSB_PID_FILE="/tmp/rtl_adsb.pid"
+ADSB_LOG_DIR="/root/loot/rtl_sdr"
+ADSB_LOG=""
+
 # ============================================
 # HELPERS
 # ============================================
@@ -132,6 +138,30 @@ start_rtl_power() {
   ALERT "rtl_power logging to\n$out_file"
 }
 
+
+start_adsb() {
+  if is_running_pid "$ADSB_PID_FILE"; then
+    LOG yellow "rtl_adsb already running"
+    return 0
+  fi
+
+  mkdir -p "$ADSB_LOG_DIR" 2>/dev/null
+  ADSB_LOG="$ADSB_LOG_DIR/adsb_$(date +%Y%m%d_%H%M%S).txt"
+
+  LOG green "Starting ADS-B receiver"
+  SPINNER "Starting rtl_adsb..."
+
+  if [ "$ADSB_GAIN" -gt 0 ] 2>/dev/null; then
+    rtl_adsb -g "$ADSB_GAIN" -p "$ADSB_PPM" | tee "$ADSB_LOG" >/dev/null &
+  else
+    rtl_adsb -p "$ADSB_PPM" | tee "$ADSB_LOG" >/dev/null &
+  fi
+
+  echo $! > "$ADSB_PID_FILE"
+  LOG green "rtl_adsb running"
+  ALERT "ADS-B receiver started\nLogging: $ADSB_LOG"
+}
+
 stop_all() {
   if is_running_pid "$TCP_PID_FILE"; then
     kill "$(cat "$TCP_PID_FILE")" 2>/dev/null
@@ -143,6 +173,12 @@ stop_all() {
     kill "$(cat "$POWER_PID_FILE")" 2>/dev/null
     rm -f "$POWER_PID_FILE"
     LOG green "Stopped rtl_power"
+  fi
+
+  if is_running_pid "$ADSB_PID_FILE"; then
+    kill "$(cat "$ADSB_PID_FILE")" 2>/dev/null
+    rm -f "$ADSB_PID_FILE"
+    LOG green "Stopped rtl_adsb"
   fi
 
   ALERT "SDR processes stopped"
@@ -163,6 +199,12 @@ status() {
   else
     LOG yellow "rtl_power: STOPPED"
   fi
+
+  if is_running_pid "$ADSB_PID_FILE"; then
+    LOG green "rtl_adsb: RUNNING"
+  else
+    LOG yellow "rtl_adsb: STOPPED"
+  fi
 }
 
 # ============================================
@@ -170,7 +212,7 @@ status() {
 # ============================================
 LOG green "=== RTL-SDR Live Suite ==="
 
-resp=$(TEXT_PICKER "Mode (tcp/power/both/stop/status)" "tcp")
+resp=$(TEXT_PICKER "Mode (tcp/power/adsb/both/stop/status)" "tcp")
 case $? in
   $DUCKYSCRIPT_CANCELLED|$DUCKYSCRIPT_REJECTED)
     exit 0
@@ -187,6 +229,10 @@ case "$MODE" in
   power)
     check_deps || exit 1
     start_rtl_power
+    ;;
+  adsb)
+    check_deps || exit 1
+    start_adsb
     ;;
   both)
     check_deps || exit 1
