@@ -8,6 +8,7 @@ Enables RTL-SDR / NESDR Smart dongles on the WiFi Pineapple Pager, installs driv
 - Start `rtl_tcp` for live viewing from a PC
 - Start `rtl_power` for spectrum logging
 - Start `rtl_adsb` for ADS-B plane tracking (logs)
+- Start `dump1090` for ADS-B web UI
 - Stop/start/status control
 
 ## Requirements
@@ -33,6 +34,7 @@ Enables RTL-SDR / NESDR Smart dongles on the WiFi Pineapple Pager, installs driv
 - `tcp` = start live streaming server (`rtl_tcp`)
 - `power` = start spectrum logging (`rtl_power`)
 - `adsb` = start ADS-B receiver (`rtl_adsb`)
+- `adsb-web` = start ADS-B web UI (`dump1090`)
 - `both` = start both
 - `stop` = stop all SDR processes
 - `status` = show running status
@@ -60,3 +62,4 @@ Edit `payload.sh` to change:
 - `FREQ_START`, `FREQ_END`, `FREQ_STEP`
 - `POWER_INTERVAL`, `POWER_DURATION`
 - `RTL_TCP_PORT`, `SAMPLE_RATE`
+- `ADSB_WEB_PORT`

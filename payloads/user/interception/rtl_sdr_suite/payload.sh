@@ -30,6 +30,8 @@ ADSB_PPM=0
 ADSB_PID_FILE="/tmp/rtl_adsb.pid"
 ADSB_LOG_DIR="/root/loot/rtl_sdr"
 ADSB_LOG=""
+ADSB_WEB_PORT=8080
+ADSB_WEB_PID_FILE="/tmp/dump1090.pid"
 
 # ============================================
 # HELPERS
@@ -162,6 +164,32 @@ start_adsb() {
   ALERT "ADS-B receiver started\nLogging: $ADSB_LOG"
 }
 
+
+start_adsb_web() {
+  if is_running_pid "$ADSB_WEB_PID_FILE"; then
+    LOG yellow "dump1090 already running"
+    return 0
+  fi
+
+  local ip
+  ip=$(get_ip)
+
+  LOG green "Starting dump1090 web UI"
+  SPINNER "Starting dump1090..."
+
+  # dump1090 will listen on ADSB_WEB_PORT for the web UI
+  # and provide JSON data for live viewing
+  if [ "$ADSB_GAIN" -gt 0 ] 2>/dev/null; then
+    dump1090 --net --net-http-port "$ADSB_WEB_PORT" --gain "$ADSB_GAIN" --ppm "$ADSB_PPM" >/tmp/dump1090.log 2>&1 &
+  else
+    dump1090 --net --net-http-port "$ADSB_WEB_PORT" --ppm "$ADSB_PPM" >/tmp/dump1090.log 2>&1 &
+  fi
+
+  echo $! > "$ADSB_WEB_PID_FILE"
+  LOG green "dump1090 running"
+  ALERT "ADS-B web UI ready\nOpen http://${ip}:${ADSB_WEB_PORT}"
+}
+
 stop_all() {
   if is_running_pid "$TCP_PID_FILE"; then
     kill "$(cat "$TCP_PID_FILE")" 2>/dev/null
@@ -179,6 +207,12 @@ stop_all() {
     kill "$(cat "$ADSB_PID_FILE")" 2>/dev/null
     rm -f "$ADSB_PID_FILE"
     LOG green "Stopped rtl_adsb"
+  fi
+
+  if is_running_pid "$ADSB_WEB_PID_FILE"; then
+    kill "$(cat "$ADSB_WEB_PID_FILE")" 2>/dev/null
+    rm -f "$ADSB_WEB_PID_FILE"
+    LOG green "Stopped dump1090"
   fi
 
   ALERT "SDR processes stopped"
@@ -205,6 +239,12 @@ status() {
   else
     LOG yellow "rtl_adsb: STOPPED"
   fi
+
+  if is_running_pid "$ADSB_WEB_PID_FILE"; then
+    LOG green "dump1090: RUNNING (web)"
+  else
+    LOG yellow "dump1090: STOPPED"
+  fi
 }
 
 # ============================================
@@ -212,7 +252,7 @@ status() {
 # ============================================
 LOG green "=== RTL-SDR Live Suite ==="
 
-resp=$(TEXT_PICKER "Mode (tcp/power/adsb/both/stop/status)" "tcp")
+resp=$(TEXT_PICKER "Mode (tcp/power/adsb/adsb-web/both/stop/status)" "tcp")
 case $? in
   $DUCKYSCRIPT_CANCELLED|$DUCKYSCRIPT_REJECTED)
     exit 0
@@ -233,6 +273,10 @@ case "$MODE" in
   adsb)
     check_deps || exit 1
     start_adsb
+    ;;
+  adsb-web)
+    check_deps || exit 1
+    start_adsb_web
     ;;
   both)
     check_deps || exit 1
