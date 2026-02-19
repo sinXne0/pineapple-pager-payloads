@@ -1,8 +1,9 @@
 # WiFi Pineapple Pager Payloads
 
 
-![Uploading 634414950_957256730300717_1882452366422533752_n.jpg…]()
 
+
+![634414950_957256730300717_1882452366422533752_n](https://github.com/user-attachments/assets/4d77f8fa-a037-4301-9d52-e8b96f71160e)
 
 
 Collection of payloads for the [WiFi Pineapple Pager](https://shop.hak5.org/products/pager) by Hak5.
