@@ -1,5 +1,10 @@
 # VENOM - WPA-Enterprise Credential Harvester
 
+
+<img width="1024" height="1536" alt="ChatGPT Image Feb 20, 2026, 09_28_21 AM" src="https://github.com/user-attachments/assets/0e4d98a2-d5d8-495d-8af3-92d1f45f7c6e" />
+
+
+
 **Type:** User Payload
 **Category:** Exfiltration
 **Author:** sinX
