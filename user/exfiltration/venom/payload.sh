@@ -208,11 +208,23 @@ check_deps() {
         esac
 
         if [ "$resp" = "$DUCKYSCRIPT_USER_CONFIRMED" ]; then
-            local sid=$(START_SPINNER "Replacing wpad...")
+            local sid=$(START_SPINNER "Downloading wpad-openssl...")
             opkg update >/dev/null 2>&1
-            opkg remove wpad-basic wpad-basic-wolfssl wpad-basic-openssl 2>/dev/null
-            opkg install wpad-openssl 2>/dev/null
+            # Download package FIRST while WiFi still works
+            opkg download wpad-openssl >/dev/null 2>&1
             STOP_SPINNER $sid
+
+            local pkg_file=$(ls wpad-openssl*.ipk 2>/dev/null | head -1)
+            if [ -z "$pkg_file" ]; then
+                ERROR_DIALOG "Download failed.\nCheck internet connection."
+                return 1
+            fi
+
+            LOG yellow "Swapping wpad (WiFi will drop briefly)..."
+            # Remove old wpad, immediately install from local file
+            opkg remove wpad-basic wpad-basic-wolfssl wpad-basic-openssl 2>/dev/null
+            opkg install "./$pkg_file" 2>/dev/null
+            rm -f "$pkg_file" 2>/dev/null
 
             LOG yellow "Restarting WiFi..."
             wifi restart 2>/dev/null
