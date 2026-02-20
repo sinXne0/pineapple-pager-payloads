@@ -1,5 +1,10 @@
 # WiFi Pineapple Pager Payloads
 
+
+<img width="1024" height="1024" alt="ChatGPT Image Feb 19, 2026, 09_51_37 PM" src="https://github.com/user-attachments/assets/88a4fcc1-7040-40e7-b80c-55fe02e337ae" />
+
+
+
 Collection of payloads for the [WiFi Pineapple Pager](https://shop.hak5.org/products/pager) by Hak5.
 
 ## Overview
