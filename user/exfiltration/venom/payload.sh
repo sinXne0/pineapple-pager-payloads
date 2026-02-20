@@ -29,6 +29,9 @@ PHY_DEVICE="phy1"
 DEFAULT_CHANNEL=6
 DEFAULT_HW_MODE="g"
 
+# Hostapd binary (set during dep check - may use standalone)
+HOSTAPD_BIN="hostapd"
+
 # Certificate settings
 CERT_CN="radius.corp.local"
 CERT_ORG="Internal Certificate Authority"
@@ -147,12 +150,6 @@ play_fail() {
 check_deps() {
     local missing=0
 
-    # Check for hostapd binary
-    if ! command -v hostapd >/dev/null 2>&1 && ! [ -f /usr/sbin/hostapd ]; then
-        LOG red "hostapd not found"
-        missing=1
-    fi
-
     # Check for openssl
     if ! command -v openssl >/dev/null 2>&1; then
         LOG red "openssl not found"
@@ -184,7 +181,6 @@ check_deps() {
             opkg install openssl-util tcpdump >/dev/null 2>&1
             STOP_SPINNER $sid
 
-            # Verify critical deps
             if ! command -v openssl >/dev/null 2>&1; then
                 ERROR_DIALOG "openssl install failed"
                 return 1
@@ -195,12 +191,23 @@ check_deps() {
         fi
     fi
 
-    # Check for EAP server support (needs wpad-openssl, not wpad-basic)
-    if opkg list-installed 2>/dev/null | grep -q "wpad-basic"; then
-        LOG yellow "wpad-basic detected"
-        LOG yellow "EAP server needs wpad-openssl"
+    # Check for hostapd with EAP server support
+    # wpad-basic (stock Pager) does NOT support eap_server=1
+    # Instead of replacing system packages, we extract a standalone
+    # hostapd-openssl binary to /tmp - nothing on the Pager is modified
+    if opkg list-installed 2>/dev/null | grep -q "wpad-openssl\|hostapd-openssl"; then
+        # Already has EAP support, use system hostapd
+        HOSTAPD_BIN="hostapd"
+        LOG green "hostapd EAP support detected"
+    elif [ -f "$TEMP_DIR/hostapd" ]; then
+        # Standalone binary already extracted from a previous run
+        HOSTAPD_BIN="$TEMP_DIR/hostapd"
+        LOG green "Using standalone hostapd"
+    else
+        LOG yellow "Stock wpad lacks EAP server"
+        LOG yellow "Will fetch standalone hostapd"
 
-        resp=$(CONFIRMATION_DIALOG "Replace wpad-basic with\nwpad-openssl?\n\nRequired for EAP server.\nWiFi will restart briefly.")
+        resp=$(CONFIRMATION_DIALOG "Download standalone hostapd\nwith EAP support?\n\nNothing on your Pager\nwill be modified.")
         case $? in
             $DUCKYSCRIPT_CANCELLED|$DUCKYSCRIPT_REJECTED|$DUCKYSCRIPT_ERROR)
                 return 1
@@ -208,30 +215,50 @@ check_deps() {
         esac
 
         if [ "$resp" = "$DUCKYSCRIPT_USER_CONFIRMED" ]; then
-            local sid=$(START_SPINNER "Downloading wpad-openssl...")
+            local sid=$(START_SPINNER "Downloading hostapd...")
+            mkdir -p "$TEMP_DIR/pkg"
+            cd "$TEMP_DIR/pkg" || return 1
+
             opkg update >/dev/null 2>&1
-            # Download package FIRST while WiFi still works
-            opkg download wpad-openssl >/dev/null 2>&1
+            opkg download hostapd-openssl >/dev/null 2>&1
+
+            local pkg_file=$(ls hostapd-openssl*.ipk 2>/dev/null | head -1)
+            if [ -z "$pkg_file" ]; then
+                # Fallback: try wpad-openssl package
+                opkg download wpad-openssl >/dev/null 2>&1
+                pkg_file=$(ls wpad-openssl*.ipk 2>/dev/null | head -1)
+            fi
+
             STOP_SPINNER $sid
 
-            local pkg_file=$(ls wpad-openssl*.ipk 2>/dev/null | head -1)
             if [ -z "$pkg_file" ]; then
                 ERROR_DIALOG "Download failed.\nCheck internet connection."
+                cd /
                 return 1
             fi
 
-            LOG yellow "Swapping wpad (WiFi will drop briefly)..."
-            # Remove old wpad, immediately install from local file
-            opkg remove wpad-basic wpad-basic-wolfssl wpad-basic-openssl 2>/dev/null
-            opkg install "./$pkg_file" 2>/dev/null
-            rm -f "$pkg_file" 2>/dev/null
+            # Extract hostapd binary from .ipk without installing
+            # ipk = tar.gz containing data.tar.gz with the actual files
+            LOG blue "Extracting hostapd binary..."
+            tar xzf "$pkg_file" ./data.tar.gz 2>/dev/null
+            tar xzf data.tar.gz ./usr/sbin/hostapd 2>/dev/null
 
-            LOG yellow "Restarting WiFi..."
-            wifi restart 2>/dev/null
-            sleep 5
-            LOG green "wpad-openssl installed"
+            if [ -f "./usr/sbin/hostapd" ]; then
+                cp "./usr/sbin/hostapd" "$TEMP_DIR/hostapd"
+                chmod +x "$TEMP_DIR/hostapd"
+                HOSTAPD_BIN="$TEMP_DIR/hostapd"
+                LOG green "Standalone hostapd ready"
+            else
+                ERROR_DIALOG "Failed to extract hostapd\nfrom package"
+                cd /
+                return 1
+            fi
+
+            # Cleanup package files
+            cd /
+            rm -rf "$TEMP_DIR/pkg"
         else
-            ERROR_DIALOG "wpad-openssl required\nCannot continue"
+            ERROR_DIALOG "hostapd with EAP support\nis required"
             return 1
         fi
     fi
@@ -589,8 +616,8 @@ start_hostapd() {
     pkill -f "hostapd.*$VENOM_IFACE" 2>/dev/null
     sleep 1
 
-    # Start hostapd with max debug logging
-    hostapd -dd "$HOSTAPD_CONF" > "$HOSTAPD_LOG" 2>&1 &
+    # Start hostapd with max debug logging (uses standalone binary if needed)
+    "$HOSTAPD_BIN" -dd "$HOSTAPD_CONF" > "$HOSTAPD_LOG" 2>&1 &
     HOSTAPD_PID=$!
 
     # Wait for startup
