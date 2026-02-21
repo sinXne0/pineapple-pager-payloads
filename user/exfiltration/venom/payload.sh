@@ -150,21 +150,27 @@ play_fail() {
 check_deps() {
     local missing=0
 
-    # Check for openssl
+    logboth "  - Checking for openssl..."
     if ! command -v openssl >/dev/null 2>&1; then
-        LOG red "openssl not found"
+        logboth red "    - openssl not found"
         missing=1
+    else
+        logboth green "    - openssl found"
     fi
 
-    # Check for iw
+    logboth "  - Checking for iw..."
     if ! command -v iw >/dev/null 2>&1; then
-        LOG red "iw not found"
+        logboth red "    - iw not found"
         missing=1
+    else
+        logboth green "    - iw found"
     fi
 
-    # Check for tcpdump (optional)
+    logboth "  - Checking for tcpdump..."
     if ! command -v tcpdump >/dev/null 2>&1; then
-        LOG yellow "tcpdump not found (optional)"
+        logboth yellow "    - tcpdump not found (optional)"
+    else
+        logboth green "    - tcpdump found"
     fi
 
     if [ "$missing" -eq 1 ]; then
@@ -177,13 +183,19 @@ check_deps() {
 
         if [ "$resp" = "$DUCKYSCRIPT_USER_CONFIRMED" ]; then
             local sid=$(START_SPINNER "Installing packages...")
+            logboth "  - Updating opkg..."
             opkg update >/dev/null 2>&1
+            logboth "  - Installing openssl-util and tcpdump..."
             opkg install openssl-util tcpdump >/dev/null 2>&1
             STOP_SPINNER $sid
 
+            logboth "  - Verifying installation..."
             if ! command -v openssl >/dev/null 2>&1; then
+                logboth red "    - openssl install failed"
                 ERROR_DIALOG "openssl install failed"
                 return 1
+            else
+                logboth green "    - openssl installed"
             fi
             LOG green "Packages installed"
         else
@@ -195,17 +207,18 @@ check_deps() {
     # wpad-basic (stock Pager) does NOT support eap_server=1
     # Instead of replacing system packages, we extract a standalone
     # hostapd-openssl binary to /tmp - nothing on the Pager is modified
+    logboth "  - Checking for hostapd with EAP support..."
     if opkg list-installed 2>/dev/null | grep -q "wpad-openssl\|hostapd-openssl"; then
         # Already has EAP support, use system hostapd
         HOSTAPD_BIN="hostapd"
-        LOG green "hostapd EAP support detected"
+        logboth green "    - hostapd EAP support detected"
     elif [ -f "$TEMP_DIR/hostapd" ]; then
         # Standalone binary already extracted from a previous run
         HOSTAPD_BIN="$TEMP_DIR/hostapd"
-        LOG green "Using standalone hostapd"
+        logboth green "    - Using standalone hostapd"
     else
-        LOG yellow "Stock wpad lacks EAP server"
-        LOG yellow "Will fetch standalone hostapd"
+        logboth yellow "    - Stock wpad lacks EAP server"
+        logboth yellow "    - Will fetch standalone hostapd"
 
         resp=$(CONFIRMATION_DIALOG "Download standalone hostapd\nwith EAP support?\n\nNothing on your Pager\nwill be modified.")
         case $? in
@@ -219,12 +232,15 @@ check_deps() {
             mkdir -p "$TEMP_DIR/pkg"
             cd "$TEMP_DIR/pkg" || return 1
 
+            logboth "      - Updating opkg..."
             opkg update >/dev/null 2>&1
+            logboth "      - Downloading hostapd-openssl..."
             opkg download hostapd-openssl >/dev/null 2>&1
 
             local pkg_file=$(ls hostapd-openssl*.ipk 2>/dev/null | head -1)
             if [ -z "$pkg_file" ]; then
                 # Fallback: try wpad-openssl package
+                logboth "      - hostapd-openssl not found, trying wpad-openssl..."
                 opkg download wpad-openssl >/dev/null 2>&1
                 pkg_file=$(ls wpad-openssl*.ipk 2>/dev/null | head -1)
             fi
@@ -232,6 +248,7 @@ check_deps() {
             STOP_SPINNER $sid
 
             if [ -z "$pkg_file" ]; then
+                logboth red "      - Download failed."
                 ERROR_DIALOG "Download failed.\nCheck internet connection."
                 cd /
                 return 1
@@ -239,7 +256,7 @@ check_deps() {
 
             # Extract hostapd binary from .ipk without installing
             # ipk = tar.gz containing data.tar.gz with the actual files
-            LOG blue "Extracting hostapd binary..."
+            logboth blue "      - Extracting hostapd binary..."
             tar xzf "$pkg_file" ./data.tar.gz 2>/dev/null
             tar xzf data.tar.gz ./usr/sbin/hostapd 2>/dev/null
 
@@ -247,8 +264,9 @@ check_deps() {
                 cp "./usr/sbin/hostapd" "$TEMP_DIR/hostapd"
                 chmod +x "$TEMP_DIR/hostapd"
                 HOSTAPD_BIN="$TEMP_DIR/hostapd"
-                LOG green "Standalone hostapd ready"
+                logboth green "      - Standalone hostapd ready"
             else
+                logboth red "      - Failed to extract hostapd from package"
                 ERROR_DIALOG "Failed to extract hostapd\nfrom package"
                 cd /
                 return 1
@@ -258,12 +276,13 @@ check_deps() {
             cd /
             rm -rf "$TEMP_DIR/pkg"
         else
+            logboth red "      - User declined hostapd download"
             ERROR_DIALOG "hostapd with EAP support\nis required"
             return 1
         fi
     fi
 
-    LOG green "Dependencies OK"
+    logboth green "Dependencies OK"
     return 0
 }
 
@@ -279,7 +298,7 @@ declare -a ENTERPRISE_SIGNALS
 ENTERPRISE_COUNT=0
 
 scan_enterprise_networks() {
-    LOG blue "Scanning for enterprise networks..."
+    logboth blue "Scanning for enterprise networks..."
     led_recon
     local sid=$(START_SPINNER "Scanning WiFi...")
 
@@ -289,7 +308,7 @@ scan_enterprise_networks() {
     ENTERPRISE_SIGNALS=()
     ENTERPRISE_COUNT=0
 
-    # Use iwinfo scan to detect 802.1X/EAP networks
+    # Use iwinfo scan and parse with awk for reliability
     local scan_output
     scan_output=$(iwinfo wlan1 scan 2>/dev/null)
 
@@ -300,72 +319,44 @@ scan_enterprise_networks() {
     STOP_SPINNER $sid
 
     if [ -z "$scan_output" ]; then
-        LOG red "Scan failed - no results"
+        logboth red "Scan failed - no results"
         return 1
     fi
 
-    # Parse iwinfo output for 802.1X/EAP networks
-    local current_bssid=""
-    local current_ssid=""
-    local current_channel=""
-    local current_signal=""
-    local current_is_enterprise=false
+    # AWK script to parse iwinfo output
+    local awk_script='
+        BEGIN { FS = "\n"; RS = "Cell"; OFS = "|"; }
+        /ESSID:/ && /802.1X|EAP|Enterprise/ {
+            bssid = ""; ssid = ""; channel = ""; signal = "";
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /Address:/) { bssid = $i; sub(/.*Address: /, "", bssid); }
+                if ($i ~ /ESSID:/) { ssid = $i; sub(/.*ESSID: "/, "", ssid); sub(/".*/, "", ssid); }
+                if ($i ~ /Channel:/) { channel = $i; sub(/.*Channel: /, "", channel); }
+                if ($i ~ /Signal:/) { signal = $i; sub(/.*Signal: /, "", signal); sub(/ dBm.*/, "", signal); }
+            }
+            if (ssid != "" && bssid != "") {
+                print ssid, bssid, channel, signal;
+            }
+        }
+    '
 
-    while IFS= read -r line; do
-        case "$line" in
-            *"Cell"*"Address:"*|*"BSS"*|*"ESSID"*|*"Channel:"*|*"Signal:"*|*"signal:"*|*"Encryption:"*|*"802.1X"*|*"EAP"*)
-                ;;
-            *)
-                continue
-                ;;
-        esac
+    local parsed_networks=$(echo "$scan_output" | awk "$awk_script")
 
-        case "$line" in
-            *"Cell"*"Address:"*|*"BSS "*)
-                # Save previous entry if enterprise
-                if [ "$current_is_enterprise" = true ] && [ -n "$current_ssid" ]; then
-                    ENTERPRISE_SSIDS+=("$current_ssid")
-                    ENTERPRISE_BSSIDS+=("$current_bssid")
-                    ENTERPRISE_CHANNELS+=("${current_channel:-$DEFAULT_CHANNEL}")
-                    ENTERPRISE_SIGNALS+=("${current_signal:--99}")
-                fi
-                current_bssid=$(echo "$line" | grep -oE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}')
-                current_ssid=""
-                current_channel=""
-                current_signal=""
-                current_is_enterprise=false
-                ;;
-            *"ESSID:"*)
-                current_ssid=$(echo "$line" | sed 's/.*ESSID: "//;s/".*//')
-                ;;
-            *"Channel:"*)
-                current_channel=$(echo "$line" | grep -oE 'Channel: [0-9]+' | awk '{print $2}')
-                ;;
-            *"Signal:"*|*"signal:"*)
-                current_signal=$(echo "$line" | grep -oE '\-[0-9]+' | head -1)
-                ;;
-            *"802.1X"*|*"EAP"*|*"Enterprise"*)
-                current_is_enterprise=true
-                ;;
-        esac
-    done <<< "$scan_output"
-
-    # Don't forget last entry
-    if [ "$current_is_enterprise" = true ] && [ -n "$current_ssid" ]; then
-        ENTERPRISE_SSIDS+=("$current_ssid")
-        ENTERPRISE_BSSIDS+=("$current_bssid")
-        ENTERPRISE_CHANNELS+=("${current_channel:-$DEFAULT_CHANNEL}")
-        ENTERPRISE_SIGNALS+=("${current_signal:--99}")
-    fi
+    while IFS='|' read -r ssid bssid channel signal; do
+        ENTERPRISE_SSIDS+=("$ssid")
+        ENTERPRISE_BSSIDS+=("$bssid")
+        ENTERPRISE_CHANNELS+=("${channel:-$DEFAULT_CHANNEL}")
+        ENTERPRISE_SIGNALS+=("${signal:--99}")
+    done <<< "$parsed_networks"
 
     ENTERPRISE_COUNT=${#ENTERPRISE_SSIDS[@]}
 
     if [ "$ENTERPRISE_COUNT" -eq 0 ]; then
-        LOG yellow "No WPA-Enterprise networks found"
+        logboth yellow "No WPA-Enterprise networks found"
         return 1
     fi
 
-    LOG green "Found $ENTERPRISE_COUNT enterprise network(s)"
+    logboth green "Found $ENTERPRISE_COUNT enterprise network(s)"
     return 0
 }
 
@@ -450,26 +441,35 @@ generate_certs() {
     mkdir -p "$CERT_DIR"
 
     # CA private key
+    logboth "  - Generating CA private key..."
     openssl genrsa -out "$CERT_DIR/ca.key" 2048 2>/dev/null
+    logboth "  - CA private key generated."
 
     # CA certificate
+    logboth "  - Generating CA certificate..."
     openssl req -new -x509 -days "$CERT_DAYS" \
         -key "$CERT_DIR/ca.key" \
         -out "$CERT_DIR/ca.pem" \
         -subj "/C=US/ST=State/L=City/O=$CERT_ORG/CN=Internal Root CA" \
         2>/dev/null
+    logboth "  - CA certificate generated."
 
     # Server private key
+    logboth "  - Generating server private key..."
     openssl genrsa -out "$CERT_DIR/server.key" 2048 2>/dev/null
+    logboth "  - Server private key generated."
 
     # Server CSR
+    logboth "  - Generating server CSR..."
     openssl req -new \
         -key "$CERT_DIR/server.key" \
         -out "$CERT_DIR/server.csr" \
         -subj "/C=US/ST=State/L=City/O=$CERT_ORG/CN=$CERT_CN" \
         2>/dev/null
+    logboth "  - Server CSR generated."
 
     # Sign server cert with CA
+    logboth "  - Signing server certificate..."
     openssl x509 -req -days "$CERT_DAYS" \
         -in "$CERT_DIR/server.csr" \
         -CA "$CERT_DIR/ca.pem" \
@@ -477,9 +477,12 @@ generate_certs() {
         -CAcreateserial \
         -out "$CERT_DIR/server.pem" \
         2>/dev/null
+    logboth "  - Server certificate signed."
 
     # DH parameters (1024-bit for speed on ARM)
+    logboth "  - Generating DH parameters..."
     openssl dhparam -out "$CERT_DIR/dh.pem" 1024 2>/dev/null
+    logboth "  - DH parameters generated."
 
     STOP_SPINNER $sid
 
