@@ -60,6 +60,49 @@ Utility for downloading and managing password wordlists.
 
 ---
 
+### Interception Payloads (firmware 2.0.0+)
+
+#### MIRRORCAST — Cast & Print Honeypot
+**Path:** `mirrorcast/`
+
+Impersonates AirPlay, DIAL, Chromecast and IPP printer discovery on mDNS/SSDP, logs every probing client, captures print jobs, and can castjack real cast devices.
+
+**Features:**
+- mDNS + SSDP service impersonation (7 service types)
+- Print-job capture (raw + extracted document)
+- Castjack mode: push media to Chromecast / AirPlay / DIAL / DLNA (with dry run)
+- Authorization gate, A-button stop, JSONL loot
+
+[View Documentation →](mirrorcast/README.md)
+
+#### IoTJACK — IoT Exploitation Toolkit
+**Path:** `iotjack/`
+
+Scans the LAN for IoT devices, fingerprints them, and runs per-protocol attack modules: Kasa Wi-Fi cred dump, anonymous MQTT capture/publish, UPnP IGD port-punching, TR-064 key recovery, RTSP default creds, PJL printer readout.
+
+**Features:**
+- Fast/full subnet scanner with protocol fingerprinting
+- Six pure-Python attack modules (no external tools)
+- Write actions individually confirmed on screen
+- Quick-wins batch mode + JSONL loot
+
+[View Documentation →](iotjack/README.md)
+
+#### PWRLVL9000 — Pentest Web Console
+**Path:** `pwrlvl9000/`
+
+Browser-based pentesting dashboard: 9-tab web UI on port 9000 (WiFi attacks, probe sniffer, evil twin, WPS pixie, web/port scanners, packet capture, handshake vault, root shell) with XP leveling and SSE live events. Updated for firmware 2.0.0.
+
+**Features:**
+- airodump-ng / hostapd / reaver / mdk4 / tcpdump automation
+- Firmware-managed monitor interface support (wlan*mon)
+- pagerctl display with automatic LOG fallback
+- Handshake crack + .22000 conversion in the Loot tab
+
+[View Documentation →](pwrlvl9000/README.md)
+
+---
+
 ## Quick Start
 
 ### 1. Install Dependencies
