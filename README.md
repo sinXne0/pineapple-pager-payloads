@@ -52,6 +52,7 @@ Every payload is built around the same rules:
 | 🔌 **IoTJACK** | Interception | Kasa / MQTT / UPnP IGD / TR-064 / RTSP / PJL modules | 2.0.0+ | [Docs](iotjack/README.md) |
 | 🧙 **PWRLVL9000** | Interception | 9-tab web console, XP leveling, handshake vault | 2.0.0+ | [Docs](pwrlvl9000/README.md) |
 | 📞 **PHONEPHREAK** | Recon | E.164, line type, link pack, QR handoff, bulk mode | 2.0.0+ | [Docs](phonephreak/README.md) |
+| 🐙 **GITGREP** | Recon | GitHub / git secret hunter, 35+ detectors, masked reports, reuse detection | 2.0.0+ | [Docs](gitgrep/README.md) |
 | 🎥 **FlockAudit** | Recon | Flock Safety LPR camera detection + KML export | Classic Pineapple | [Docs](FlockAudit/README.md) |
 | 📊 **Recon Reporter** | Recon | CSV + JSON recon exports from the Recon UI | Pager | [Docs](library/recon/general/recon_reporter/README.md) |
 | 🎭 **VENOM** | Exfiltration | Rogue WPA-Enterprise AP, EAP identity + credential capture | Pager | [Docs](venom/README.md) |
@@ -146,6 +147,24 @@ Loot:    /root/loot/phonephreak/
 
 [Full documentation →](phonephreak/README.md)
 
+### 🐙 GITGREP — GitHub Secret Hunter
+
+Read-only secret hunter for GitHub users, orgs, repositories and local git
+history. Finds credentials committed by mistake and reports them masked.
+
+- 35+ detectors (AWS, GCP, Azure, GitHub/GitLab, Slack, Discord, Stripe,
+  SendGrid, Telegram, npm, PyPI, OpenAI, private keys, ...)
+- Streamed tarball scanning, gist support, optional commit-history sweep
+- Placeholder filtering, dedupe and secret-reuse grouping
+- Masked by default; `secret_id` hashes let you track reuse safely
+
+```text
+Install: /root/payloads/user/reconnaissance/gitgrep
+Loot:    /root/loot/gitgrep/
+```
+
+[Full documentation →](gitgrep/README.md)
+
 ---
 
 ## Quick start
@@ -203,6 +222,7 @@ Launch any payload from **Payloads → User Payloads** on the Pager.
 | IoTJACK | `python3-light` | — |
 | PWRLVL9000 | `python3-light`, `aircrack-ng` | `hostapd`, `dnsmasq`, `reaver`, `mdk4`, `tcpdump`, `iw` |
 | PHONEPHREAK | `python3-light` | `python3-openssl` for the online footprint check |
+| GITGREP | `python3-light` | `python3-openssl` for GitHub, `git` + `git-http` for history mode |
 | VENOM | `wpad-openssl`, `openssl-util`, `iw` | `tcpdump` |
 | Handshake tooling | `aircrack-ng` | — |
 | Sherlock | `curl` | — |
@@ -232,6 +252,7 @@ Each payload also offers to install its own missing dependencies on first run.
 | IoTJACK | `/root/loot/iotjack/` (JSONL events, module output) |
 | PWRLVL9000 | `/root/loot/pwrlvl9000/` and `/tmp/pwrlvl9000.log` |
 | PHONEPHREAK | `/root/loot/phonephreak/` (`.txt` + `.json`) |
+| GITGREP | `/root/loot/gitgrep/` (`.txt` + `.json` + `.csv` + preview) |
 | VENOM | `/root/loot/venom/` |
 | Sherlock | `/root/loot/sherlock/` |
 | FlockAudit | `/root/loot/FlockAudit/` (report + KML) |
@@ -249,6 +270,7 @@ Each payload also offers to install its own missing dependencies on first run.
 ├── iotjack/                     IoT exploitation framework
 ├── pwrlvl9000/                  Web pentest console
 ├── phonephreak/                 Phone-number OSINT
+├── gitgrep/                     GitHub / git secret hunter
 ├── FlockAudit/                  Flock Safety LPR camera audit
 ├── venom/                       WPA-Enterprise credential harvester
 ├── Sherlock/                    Username OSINT
