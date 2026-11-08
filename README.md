@@ -222,7 +222,7 @@ Launch any payload from **Payloads → User Payloads** on the Pager.
 | IoTJACK | `python3-light` | — |
 | PWRLVL9000 | `python3-light`, `aircrack-ng` | `hostapd`, `dnsmasq`, `reaver`, `mdk4`, `tcpdump`, `iw` |
 | PHONEPHREAK | `python3-light` | `python3-openssl` for the online footprint check |
-| GITGREP | `python3-light` | `python3-openssl` for GitHub, `git` + `git-http` for history mode |
+| GITGREP | `python3-light`, `curl` | `git` + `git-http` for history mode |
 | VENOM | `wpad-openssl`, `openssl-util`, `iw` | `tcpdump` |
 | Handshake tooling | `aircrack-ng` | — |
 | Sherlock | `curl` | — |
