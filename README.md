@@ -1,372 +1,308 @@
-# WiFi Pineapple Pager Payloads
+<div align="center">
+  <img src="assets/banner.svg" alt="Dark Sec Labz — Pineapple Pager Payloads" width="100%">
+</div>
 
+<h1 align="center">Pineapple Pager Payloads</h1>
 
+<p align="center">
+  <b>Offensive wireless, network and OSINT payloads for the Hak5 WiFi Pineapple Pager.</b><br>
+  Built for firmware <b>2.0.0-stable</b> · <code>mipsel</code> · authorization-gated · loot-first
+</p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/firmware-2.0.0--stable-6b3fa0?style=for-the-badge" alt="Firmware 2.0.0-stable">
+  <img src="https://img.shields.io/badge/platform-mipsel-7a5cff?style=for-the-badge" alt="mipsel">
+  <img src="https://img.shields.io/badge/payloads-11-ff2fd6?style=for-the-badge" alt="11 payloads">
+  <img src="https://img.shields.io/badge/license-MIT-d1acff?style=for-the-badge" alt="MIT">
+  <img src="https://img.shields.io/badge/PRs-welcome-8b5cf6?style=for-the-badge" alt="PRs welcome">
+</p>
 
-![634414950_957256730300717_1882452366422533752_n](https://github.com/user-attachments/assets/4d77f8fa-a037-4301-9d52-e8b96f71160e)
-
-
-Collection of payloads for the [WiFi Pineapple Pager](https://shop.hak5.org/products/pager) by Hak5.
-
-## Overview
-
-This repository contains custom payloads for automatically and manually cracking WPA/WPA2 handshakes directly on the WiFi Pineapple Pager, plus tools for managing wordlists.
-
-## Payloads
-
-### Alert Payloads
-
-#### Auto Handshake Cracker
-**Path:** `library/alerts/handshake_captured/auto_crack/`
-
-Automatically attempts to crack WPA handshakes using aircrack-ng immediately when captured.
-
-**Features:**
-- Runs automatically on handshake capture
-- Configurable timeout to prevent resource exhaustion
-- Logs all successful cracks with timestamps
-- Vibration and alert notifications on success
-
-[View Documentation →](library/alerts/handshake_captured/auto_crack/README.md)
+<p align="center">
+  <a href="#payload-index">Payload index</a> ·
+  <a href="#featured-payloads">Featured payloads</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#dependencies">Dependencies</a> ·
+  <a href="#loot-paths">Loot paths</a> ·
+  <a href="#legal">Legal</a> ·
+  <a href="#contributing">Contributing</a>
+</p>
 
 ---
 
-### User Payloads
+## Why this repo
 
-#### Interactive Handshake Cracker
-**Path:** `library/user/exfiltration/handshake_cracker/`
+A curated set of Pager payloads that go beyond the stock library: discovery
+honeypots, IoT exploitation, a full web pentest console, phone-number OSINT,
+enterprise Wi-Fi credential capture, username recon, and handshake tooling.
 
-Manual payload for cracking handshakes with full control and detailed feedback.
+Every payload is built around the same rules:
 
-**Features:**
-- Interactive handshake selection
-- Progress tracking with spinner
-- Success notifications (visual, audio, haptic)
-- Persistent results log
-
-[View Documentation →](library/user/exfiltration/handshake_cracker/README.md)
-
-#### Wordlist Manager
-**Path:** `library/user/general/wordlist_manager/`
-
-Utility for downloading and managing password wordlists.
-
-**Features:**
-- Auto-download common wordlists from public repos
-- Wordlist statistics and organization
-- Internet connectivity verification
-
-[View Documentation →](library/user/general/wordlist_manager/README.md)
+- **Authorized testing only** — explicit scope gate before any active step
+- **Reversible** — services, interfaces and files are restored on exit
+- **Loot-first** — results land in a predictable `/root/loot/<payload>/` path
+- **Self-contained** — pure Python/shell wherever possible, no surprise binaries
 
 ---
 
-### Interception Payloads (firmware 2.0.0+)
+## Payload index
 
-#### MIRRORCAST — Cast & Print Honeypot
-**Path:** `mirrorcast/`
+| Payload | Layer | Highlights | Firmware | Docs |
+| --- | --- | --- | --- | --- |
+| 📺 **MIRRORCAST** | Interception | mDNS/SSDP cast + print honeypot, print capture, castjack | 2.0.0+ | [Docs](mirrorcast/README.md) |
+| 🔌 **IoTJACK** | Interception | Kasa / MQTT / UPnP IGD / TR-064 / RTSP / PJL modules | 2.0.0+ | [Docs](iotjack/README.md) |
+| 🧙 **PWRLVL9000** | Interception | 9-tab web console, XP leveling, handshake vault | 2.0.0+ | [Docs](pwrlvl9000/README.md) |
+| 📞 **PHONEPHREAK** | Recon | E.164, line type, link pack, QR handoff, bulk mode | 2.0.0+ | [Docs](phonephreak/README.md) |
+| 🎥 **FlockAudit** | Recon | Flock Safety LPR camera detection + KML export | Classic Pineapple | [Docs](FlockAudit/README.md) |
+| 📊 **Recon Reporter** | Recon | CSV + JSON recon exports from the Recon UI | Pager | [Docs](library/recon/general/recon_reporter/README.md) |
+| 🎭 **VENOM** | Exfiltration | Rogue WPA-Enterprise AP, EAP identity + credential capture | Pager | [Docs](venom/README.md) |
+| 🕵️ **Sherlock** | OSINT | Username hunt across 80+ platforms | Pager | [Docs](Sherlock/README.md) |
+| ⚡ **Auto Handshake Cracker** | Alerts | Auto-crack captured WPA handshakes | Pager | [Docs](autocrack/alerts/handshake_captured/auto_crack/README.md) |
+| 🔓 **Interactive Handshake Cracker** | Exfiltration | Manual handshake cracking with live progress | Pager | [Docs](autocrack/user/exfiltration/handshake_cracker/README.md) |
+| 📚 **Wordlist Manager** | General | Download and organize wordlists | Pager | [Docs](autocrack/user/general/wordlist_manager/README.md) |
 
-Impersonates AirPlay, DIAL, Chromecast and IPP printer discovery on mDNS/SSDP, logs every probing client, captures print jobs, and can castjack real cast devices.
-
-**Features:**
-- mDNS + SSDP service impersonation (7 service types)
-- Print-job capture (raw + extracted document)
-- Castjack mode: push media to Chromecast / AirPlay / DIAL / DLNA (with dry run)
-- Authorization gate, A-button stop, JSONL loot
-
-[View Documentation →](mirrorcast/README.md)
-
-#### IoTJACK — IoT Exploitation Toolkit
-**Path:** `iotjack/`
-
-Scans the LAN for IoT devices, fingerprints them, and runs per-protocol attack modules: Kasa Wi-Fi cred dump, anonymous MQTT capture/publish, UPnP IGD port-punching, TR-064 key recovery, RTSP default creds, PJL printer readout.
-
-**Features:**
-- Fast/full subnet scanner with protocol fingerprinting
-- Six pure-Python attack modules (no external tools)
-- Write actions individually confirmed on screen
-- Quick-wins batch mode + JSONL loot
-
-[View Documentation →](iotjack/README.md)
-
-#### PWRLVL9000 — Pentest Web Console
-**Path:** `pwrlvl9000/`
-
-Browser-based pentesting dashboard: 9-tab web UI on port 9000 (WiFi attacks, probe sniffer, evil twin, WPS pixie, web/port scanners, packet capture, handshake vault, root shell) with XP leveling and SSE live events. Updated for firmware 2.0.0.
-
-**Features:**
-- airodump-ng / hostapd / reaver / mdk4 / tcpdump automation
-- Firmware-managed monitor interface support (wlan*mon)
-- pagerctl display with automatic LOG fallback
-- Handshake crack + .22000 conversion in the Loot tab
-
-[View Documentation →](pwrlvl9000/README.md)
-
-### Reconnaissance Payloads
-
-#### PHONEPHREAK — Phone Number OSINT
-**Path:** `phonephreak/`
-
-PhoneInfoga-style phone number reconnaissance. Validates and normalizes to E.164, reports country/timezone and line type, generates format variants and an investigation link pack, and can run an optional exact-match web footprint check.
-
-**Features:**
-- Offline E.164 parse/validate and ~150 calling codes
-- Line-type detection (mobile / landline / VoIP / toll-free / premium)
-- Format variants + WhatsApp/Telegram/search/carrier links
-- Optional DuckDuckGo exact-match footprint check
-- Bulk mode with `.txt` + `.json` reports in `/root/loot/phonephreak/`
-- QR handoff of the wa.me link to a phone
-
-[View Documentation →](phonephreak/README.md)
+> The four featured payloads are actively maintained for **2.0.0-stable**. The
+> remaining payloads are included as-is; test them against your firmware before
+> relying on them in an engagement.
 
 ---
 
-## Quick Start
+## Featured payloads
 
-### 1. Install Dependencies
+### 📺 MIRRORCAST — Cast & Print Honeypot
 
-SSH into your Pager and install required tools:
+Impersonates the AirPlay, DIAL, Chromecast and IPP printer services that clients
+expect to find on a network, logs every device that comes looking, captures
+print jobs, and can push media to real cast devices.
 
-```bash
-opkg update
-opkg install aircrack-ng
+- Seven mDNS/SSDP service identities, including DLNA and IPP printers
+- Raw print-job capture plus extracted document
+- Castjack mode for Chromecast / AirPlay / DIAL / DLNA, with dry-run preview
+- A-button stop and JSONL loot stream
+
+```text
+Install: /root/payloads/user/interception/mirrorcast
+Loot:    /root/loot/mirrorcast/
 ```
 
-### 2. Clone Repository
+[Full documentation →](mirrorcast/README.md)
 
-```bash
-cd /root
+### 🔌 IoTJACK — IoT Exploitation Toolkit
+
+Scans the LAN, fingerprints IoT devices, then speaks each target's own protocol
+in pure Python. No external exploit binaries.
+
+| Module | Protocol | Read | Write (confirmed on screen) |
+| --- | --- | --- | --- |
+| Kasa | TP-Link XOR/JSON, TCP 9999 | sysinfo, Wi-Fi creds, cloud account, power meter | Relay toggle |
+| MQTT | MQTT 3.1.1 | Anonymous subscribe / capture | Publish |
+| UPnP IGD | SOAP | Device + service map | Add/remove NAT mapping |
+| TR-064 | SOAP over HTTP | Router keys / config | — |
+| RTSP | RTSP | Camera identity, default-cred test | — |
+| PJL | Printer Job Language | Printer readout | Display message |
+
+```text
+Install: /root/payloads/user/interception/iotjack
+Loot:    /root/loot/iotjack/
+```
+
+[Full documentation →](iotjack/README.md)
+
+### 🧙 PWRLVL9000 — Pentest Web Console
+
+A browser-based pentesting dashboard on port **9000**, served from the Pager.
+Nine tabs cover Wi-Fi, probes, rogue APs, WPS, web and port scanning, packet
+capture, a handshake vault, and a root shell — with XP leveling and live SSE
+events.
+
+- Firmware-managed monitor interfaces (`wlan0mon`, `wlan1mon`, `wlan2mon`)
+- `airodump-ng`, `hostapd`, `reaver`, `mdk4`, `tcpdump` automation
+- Handshake cracking and `.22000` conversion in the Loot tab
+- On-device LOG display by default; `pagerctl` graphical display is opt-in
+
+```text
+Install: /root/payloads/user/interception/pwrlvl9000
+Open:    http://172.16.42.1:9000
+Loot:    /root/loot/pwrlvl9000/
+```
+
+[Full documentation →](pwrlvl9000/README.md)
+
+### 📞 PHONEPHREAK — Phone Number OSINT
+
+Turns a phone number into a PhoneInfoga-style report. Fully offline by default,
+with an optional exact-match web footprint check.
+
+- E.164 validation and normalization for ~150 calling codes
+- Country, timezone, and line-type detection (mobile / landline / VoIP /
+  toll-free / premium)
+- Format variants and an investigation link pack (WhatsApp, Telegram, search
+  dorks, Truecaller, sync.me, carrier lookups)
+- QR handoff of the `wa.me` link, plus bulk mode with `.txt` + `.json` reports
+
+```text
+Install: /root/payloads/user/reconnaissance/phonephreak
+Loot:    /root/loot/phonephreak/
+```
+
+[Full documentation →](phonephreak/README.md)
+
+---
+
+## Quick start
+
+### Install from your computer
+
+```sh
 git clone https://github.com/sinXne0/pineapple-pager-payloads.git
+cd pineapple-pager-payloads
+
+scp -r mirrorcast iotjack pwrlvl9000 \
+  root@172.16.42.1:/root/payloads/user/interception/
+scp -r phonephreak \
+  root@172.16.42.1:/root/payloads/user/reconnaissance/
 ```
 
-### 3. Install Payloads
+Then make the launchers executable:
 
-```bash
-# Copy alert payloads
-cp -r pineapple-pager-payloads/library/alerts/handshake_captured/auto_crack /root/payloads/alerts/handshake_captured/
-
-# Copy user payloads
-cp -r pineapple-pager-payloads/library/user/exfiltration/handshake_cracker /root/payloads/user/exfiltration/
-cp -r pineapple-pager-payloads/library/user/general/wordlist_manager /root/payloads/user/general/
-
-# Make executable
-chmod +x /root/payloads/alerts/handshake_captured/auto_crack/payload.sh
-chmod +x /root/payloads/user/exfiltration/handshake_cracker/payload.sh
-chmod +x /root/payloads/user/general/wordlist_manager/payload.sh
+```sh
+ssh root@172.16.42.1 '
+  chmod +x /root/payloads/user/interception/*/payload.sh
+  chmod +x /root/payloads/user/reconnaissance/phonephreak/payload.sh
+'
 ```
 
-### 4. Download Wordlists
+### Install directly on the Pager
 
-Run the Wordlist Manager from your Pager dashboard or manually upload:
+```sh
+ssh root@172.16.42.1
 
-```bash
-scp rockyou.txt root@172.16.42.1:/root/wordlists/
+mkdir -p /root/payloads/user/interception /root/payloads/user/reconnaissance
+cd /root/payloads/user
+git clone --depth 1 https://github.com/sinXne0/pineapple-pager-payloads.git
+
+cp -r pineapple-pager-payloads/mirrorcast \
+      pineapple-pager-payloads/iotjack \
+      pineapple-pager-payloads/pwrlvl9000 \
+      /root/payloads/user/interception/
+cp -r pineapple-pager-payloads/phonephreak \
+      /root/payloads/user/reconnaissance/
+
+chmod +x /root/payloads/user/interception/*/payload.sh \
+         /root/payloads/user/reconnaissance/phonephreak/payload.sh
 ```
 
-### 5. Start Cracking!
-
-Enable the Auto Handshake Cracker alert or run the Interactive Cracker manually from the dashboard.
+Launch any payload from **Payloads → User Payloads** on the Pager.
 
 ---
 
-## Usage
+## Dependencies
 
-### Automatic Background Cracking
+| Payload | Required | Optional |
+| --- | --- | --- |
+| MIRRORCAST | `python3-light` | `python3-openssl` for Chromecast castjack |
+| IoTJACK | `python3-light` | — |
+| PWRLVL9000 | `python3-light`, `aircrack-ng` | `hostapd`, `dnsmasq`, `reaver`, `mdk4`, `tcpdump`, `iw` |
+| PHONEPHREAK | `python3-light` | `python3-openssl` for the online footprint check |
+| VENOM | `wpad-openssl`, `openssl-util`, `iw` | `tcpdump` |
+| Handshake tooling | `aircrack-ng` | — |
+| Sherlock | `curl` | — |
 
-1. Enable "Auto Handshake Cracker" alert payload in Pager settings
-2. Configure with small wordlist (1k-10k passwords recommended)
-3. Start wireless recon
-4. Payloads automatically crack each captured handshake
-5. Check `/root/crack_results.log` for passwords
+Install the common base:
 
-### Manual Interactive Cracking
-
-1. Capture handshakes via recon
-2. Run "Interactive Handshake Cracker" from dashboard
-3. Follow on-screen prompts
-4. Receive instant notification when cracked
-5. View results in `/root/cracked_passwords.txt`
-
----
-
-## Performance Guide
-
-| Wordlist Size | Crack Time | Recommended Use |
-|---------------|------------|-----------------|
-| 1,000 passwords | 1-2 minutes | Auto-cracker, quick testing |
-| 10,000 passwords | 5-15 minutes | Auto-cracker, common passwords |
-| 100,000 passwords | 30-90 minutes | Manual cracking only |
-| 1,000,000+ passwords | Hours-Days | **Not recommended** - use offline |
-
-**Tip:** The Pager has limited CPU power. For large wordlists, export handshakes and use hashcat on a laptop/desktop with GPU acceleration.
-
----
-
-## Directory Structure
-
-```
-library/
-├── alerts/
-│   └── handshake_captured/
-│       └── auto_crack/
-│           ├── payload.sh
-│           └── README.md
-└── user/
-    ├── exfiltration/
-    │   └── handshake_cracker/
-    │       ├── payload.sh
-    │       └── README.md
-    └── general/
-        └── wordlist_manager/
-            ├── payload.sh
-            └── README.md
-```
-
----
-
-## Requirements
-
-- WiFi Pineapple Pager (firmware 1.0.0+)
-- `aircrack-ng` (install via `opkg install aircrack-ng`)
-- At least one wordlist file
-- Internet connectivity for Wordlist Manager
-
----
-
-## Configuration
-
-Each payload includes configuration variables at the top of `payload.sh`:
-
-### Auto Handshake Cracker
-```bash
-WORDLIST="/root/wordlists/rockyou.txt"      # Path to wordlist
-MAX_CRACK_TIME=300                          # Timeout in seconds
-ENABLE_LOGGING=true                         # Log results
-VIBRATE_ON_SUCCESS=true                     # Vibrate on success
-```
-
-### Interactive Handshake Cracker
-```bash
-WORDLIST_DIR="/root/wordlists"
-DEFAULT_WORDLIST="$WORDLIST_DIR/rockyou.txt"
-HANDSHAKE_DIR="/root/loot/handshakes"
-RESULTS_FILE="/root/cracked_passwords.txt"
-```
-
----
-
-## Troubleshooting
-
-### "aircrack-ng: command not found"
-```bash
+```sh
 opkg update
-opkg install aircrack-ng
+opkg install python3-light
 ```
 
-### "Wordlist not found"
-Run the Wordlist Manager payload or manually upload:
-```bash
-scp wordlist.txt root@172.16.42.1:/root/wordlists/
+Install the full PWRLVL9000 toolset:
+
+```sh
+opkg install aircrack-ng hostapd dnsmasq reaver mdk4 tcpdump iw
 ```
 
-### "No handshakes found"
-- Verify handshakes are in `/root/loot/handshakes/`
-- Check file format (must be `.pcap` or `.cap`)
-- Ensure handshakes are complete and valid
-
-### Battery draining fast
-- Use smaller wordlists
-- Reduce `MAX_CRACK_TIME` for auto-cracker
-- Connect USB-C power during long crack sessions
+Each payload also offers to install its own missing dependencies on first run.
 
 ---
 
-## Wordlist Recommendations
+## Loot paths
 
-### Recommended for Pager
-- **common-passwords.txt** (1k) - Quick wins
-- **rockyou-top10k.txt** (10k) - Best balance
-- **wifi-defaults.txt** - Router default passwords
-
-### Sources
-- [SecLists](https://github.com/danielmiessler/SecLists)
-- [Weakpass](https://weakpass.com/)
-- Custom targeted wordlists
+| Payload | Output |
+| --- | --- |
+| MIRRORCAST | `/root/loot/mirrorcast/` (JSONL events, print jobs) |
+| IoTJACK | `/root/loot/iotjack/` (JSONL events, module output) |
+| PWRLVL9000 | `/root/loot/pwrlvl9000/` and `/tmp/pwrlvl9000.log` |
+| PHONEPHREAK | `/root/loot/phonephreak/` (`.txt` + `.json`) |
+| VENOM | `/root/loot/venom/` |
+| Sherlock | `/root/loot/sherlock/` |
+| FlockAudit | `/root/loot/FlockAudit/` (report + KML) |
+| Recon Reporter | `/root/loot/recon_reports/` (CSV + JSON) |
+| Handshake Cracker | `/root/cracked_passwords.txt` |
 
 ---
 
-## Security & Legal Notice
+## Repository layout
 
-⚠️ **IMPORTANT**: These payloads are designed for **authorized security testing only**.
+```text
+.
+├── assets/                      Banner artwork
+├── mirrorcast/                  Cast & print honeypot
+├── iotjack/                     IoT exploitation framework
+├── pwrlvl9000/                  Web pentest console
+├── phonephreak/                 Phone-number OSINT
+├── FlockAudit/                  Flock Safety LPR camera audit
+├── venom/                       WPA-Enterprise credential harvester
+├── Sherlock/                    Username OSINT
+├── autocrack/                   Handshake cracking + wordlists
+├── library/recon/general/       Recon Reporter payload
+├── CONTRIBUTING.md
+└── LICENSE
+```
 
-### Legal Use Cases
-✅ Testing your own networks
-✅ Authorized penetration testing with written permission
-✅ Educational/research in controlled environments
-✅ Security assessments with client authorization
+---
 
-### Illegal Use Cases
-❌ Testing networks without permission
-❌ Accessing neighbor's WiFi
-❌ Public WiFi cracking
-❌ Any unauthorized network access
+## Compatibility and safety
 
-**Unauthorized access to computer networks is illegal and punishable by law.**
+- Targets **WiFi Pineapple Pager** hardware with firmware **2.0.0-stable**.
+- Uses the firmware-managed monitor interfaces on 2.0.0; older firmware falls
+  back to the classic `iw` monitor toggle where supported.
+- No destructive persistence: cleanup traps stop services, remove temporary
+  interfaces, and restore display state.
+- The only bundled binary is PWRLVL9000's `libpagerctl.so` (mipsel); everything
+  else is shell or pure Python.
+
+---
+
+## Legal
+
+These payloads are for **authorized security testing, research, and education
+only**. Run them only against networks, devices, and accounts you own or have
+explicit written permission to test. You are responsible for your engagement
+scope, local law, and the terms of any third-party service you query.
+
+The authors accept no liability for misuse or damage.
 
 ---
 
 ## Contributing
 
-Contributions welcome! Please:
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
-1. Fork the repository
-2. Create a feature branch
-3. Follow the [Hak5 payload standards](https://github.com/hak5/wifipineapplepager-payloads)
-4. Test thoroughly on actual hardware
-5. Submit a pull request
-
-### Contribution Ideas
-- Add GPU offload support
-- Implement John the Ripper integration
-- Add custom rule-based cracking
-- Improve handshake selection UI
-- Add hashcat integration
-
----
-
-## Changelog
-
-### Version 1.0 (2026-02-11)
-- Initial release
-- Auto Handshake Cracker (alert payload)
-- Interactive Handshake Cracker (user payload)
-- Wordlist Manager (user payload)
-- Complete documentation
+- One payload per pull request
+- Tested on real Pager hardware
+- Unix LF line endings, `mipsel` target
+- Include a payload header with `Title`, `Author`, `Description`, `Version`,
+  `Category`, and `Firmware`
+- Keep write actions explicit and reversible
 
 ---
 
 ## Credits
 
-- **Author**: [sinX](https://github.com/sinXne0)
-- **Platform**: WiFi Pineapple Pager by [Hak5](https://hak5.org)
-- **Cracking Engine**: [aircrack-ng](https://www.aircrack-ng.org/)
-- **Wordlists**: [SecLists](https://github.com/danielmiessler/SecLists), Weakpass, Community
-
----
+- [Hak5](https://hak5.org) for the WiFi Pineapple Pager and payload framework
+- `bad-antics` for FlockAudit
+- `sinX` for the classic handshake and wordlist payloads
+- Everyone who has reported bugs and tested payloads on hardware
 
 ## License
 
-These payloads are provided as-is for authorized security testing purposes only.
-
-Use at your own risk. Author is not responsible for misuse or illegal activities.
-
----
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/sinXne0/pineapple-pager-payloads/issues)
-- **Documentation**: See individual payload README files
-- **Hak5 Forums**: [forums.hak5.org](https://forums.hak5.org)
-
----
-
-**Made with ❤️ for the Hak5 community**
+[MIT](LICENSE) © 2026 sinX
