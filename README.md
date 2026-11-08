@@ -101,6 +101,23 @@ Browser-based pentesting dashboard: 9-tab web UI on port 9000 (WiFi attacks, pro
 
 [View Documentation →](pwrlvl9000/README.md)
 
+### Reconnaissance Payloads
+
+#### PHONEPHREAK — Phone Number OSINT
+**Path:** `phonephreak/`
+
+PhoneInfoga-style phone number reconnaissance. Validates and normalizes to E.164, reports country/timezone and line type, generates format variants and an investigation link pack, and can run an optional exact-match web footprint check.
+
+**Features:**
+- Offline E.164 parse/validate and ~150 calling codes
+- Line-type detection (mobile / landline / VoIP / toll-free / premium)
+- Format variants + WhatsApp/Telegram/search/carrier links
+- Optional DuckDuckGo exact-match footprint check
+- Bulk mode with `.txt` + `.json` reports in `/root/loot/phonephreak/`
+- QR handoff of the wa.me link to a phone
+
+[View Documentation →](phonephreak/README.md)
+
 ---
 
 ## Quick Start
