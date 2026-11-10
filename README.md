@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/firmware-2.0.0--stable-6b3fa0?style=for-the-badge" alt="Firmware 2.0.0-stable">
   <img src="https://img.shields.io/badge/platform-mipsel-7a5cff?style=for-the-badge" alt="mipsel">
-  <img src="https://img.shields.io/badge/payloads-11-ff2fd6?style=for-the-badge" alt="11 payloads">
+  <img src="https://img.shields.io/badge/payloads-12-ff2fd6?style=for-the-badge" alt="12 payloads">
   <img src="https://img.shields.io/badge/license-MIT-d1acff?style=for-the-badge" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-8b5cf6?style=for-the-badge" alt="PRs welcome">
 </p>
@@ -32,8 +32,9 @@
 ## Why this repo
 
 A curated set of Pager payloads that go beyond the stock library: discovery
-honeypots, IoT exploitation, a full web pentest console, phone-number OSINT,
-enterprise Wi-Fi credential capture, username recon, and handshake tooling.
+honeypots, IoT exploitation, a full web pentest console, a rogue-AP flytrap,
+phone-number OSINT, enterprise Wi-Fi credential capture, username recon, and
+handshake tooling.
 
 Every payload is built around the same rules:
 
@@ -51,6 +52,7 @@ Every payload is built around the same rules:
 | 📺 **MIRRORCAST** | Interception | mDNS/SSDP cast + print honeypot, print capture, castjack | 2.0.0+ | [Docs](mirrorcast/README.md) |
 | 🔌 **IoTJACK** | Interception | Kasa / MQTT / UPnP IGD / TR-064 / RTSP / PJL modules | 2.0.0+ | [Docs](iotjack/README.md) |
 | 🧙 **PWRLVL9000** | Interception | 9-tab web console, XP leveling, handshake vault | 2.0.0+ | [Docs](pwrlvl9000/README.md) |
+| 🕸️ **VENUS** | Interception | Flytrap rogue AP, animated spiderweb UI, captive portal, deauth lure | 2.0.0+ | [Docs](venus/README.md) |
 | 📞 **PHONEPHREAK** | Recon | E.164, line type, link pack, QR handoff, bulk mode | 2.0.0+ | [Docs](phonephreak/README.md) |
 | 🐙 **GITGREP** | Recon | GitHub / git secret hunter, 35+ detectors, masked reports, reuse detection | 2.0.0+ | [Docs](gitgrep/README.md) |
 | 🎥 **FlockAudit** | Recon | Flock Safety LPR camera detection + KML export | Classic Pineapple | [Docs](FlockAudit/README.md) |
@@ -128,6 +130,24 @@ Loot:    /root/loot/pwrlvl9000/
 
 [Full documentation →](pwrlvl9000/README.md)
 
+### 🕸️ VENUS — Flytrap Rogue AP
+
+An interactive evil-twin flytrap. Recon live APs, clone one, and watch captured
+clients land as flies on an animated spiderweb on the Pager's own screen.
+
+- On-device animated UI (D-pad + A/B), one fly per associated client
+- Dedicated AP vif + raw-socket DHCP + wildcard DNS (no dnsmasq/UDP:67 clash)
+- Captive portal with credential capture, loot to JSONL
+- Optional targeted deauth lure on a second radio
+- Shared-radio safety guard so it never knocks the Pager's own WiFi offline
+
+```text
+Install: /root/payloads/user/interception/venus
+Loot:    /root/loot/venus/
+```
+
+[Full documentation →](venus/README.md)
+
 ### 📞 PHONEPHREAK — Phone Number OSINT
 
 Turns a phone number into a PhoneInfoga-style report. Fully offline by default,
@@ -175,7 +195,7 @@ Loot:    /root/loot/gitgrep/
 git clone https://github.com/sinXne0/pineapple-pager-payloads.git
 cd pineapple-pager-payloads
 
-scp -r mirrorcast iotjack pwrlvl9000 \
+scp -r mirrorcast iotjack pwrlvl9000 venus \
   root@172.16.42.1:/root/payloads/user/interception/
 scp -r phonephreak \
   root@172.16.42.1:/root/payloads/user/reconnaissance/
@@ -202,6 +222,7 @@ git clone --depth 1 https://github.com/sinXne0/pineapple-pager-payloads.git
 cp -r pineapple-pager-payloads/mirrorcast \
       pineapple-pager-payloads/iotjack \
       pineapple-pager-payloads/pwrlvl9000 \
+      pineapple-pager-payloads/venus \
       /root/payloads/user/interception/
 cp -r pineapple-pager-payloads/phonephreak \
       /root/payloads/user/reconnaissance/
@@ -221,6 +242,7 @@ Launch any payload from **Payloads → User Payloads** on the Pager.
 | MIRRORCAST | `python3-light` | `python3-openssl` for Chromecast castjack |
 | IoTJACK | `python3-light` | — |
 | PWRLVL9000 | `python3-light`, `aircrack-ng` | `hostapd`, `dnsmasq`, `reaver`, `mdk4`, `tcpdump`, `iw` |
+| VENUS | `python3-light`, `hostapd`, `iw` | `python3-ctypes` (on-device UI), `aireplay-ng` (lure) |
 | PHONEPHREAK | `python3-light` | `python3-openssl` for the online footprint check |
 | GITGREP | `python3-light`, `curl` | `git` + `git-http` for history mode |
 | VENOM | `wpad-openssl`, `openssl-util`, `iw` | `tcpdump` |
@@ -233,6 +255,11 @@ Install the common base:
 opkg update
 opkg install python3-light
 ```
+
+> **Note:** Pager firmware ships an `opkg` with `install`/`remove` disabled.
+> PHONEPHREAK and VENUS bundle `install_pkg.py`, which installs packages via
+> `opkg download` + Python `tarfile` (resolving dependencies) and offers to
+> install what they need on first run — no manual `opkg install` required.
 
 Install the full PWRLVL9000 toolset:
 
@@ -251,6 +278,7 @@ Each payload also offers to install its own missing dependencies on first run.
 | MIRRORCAST | `/root/loot/mirrorcast/` (JSONL events, print jobs) |
 | IoTJACK | `/root/loot/iotjack/` (JSONL events, module output) |
 | PWRLVL9000 | `/root/loot/pwrlvl9000/` and `/tmp/pwrlvl9000.log` |
+| VENUS | `/root/loot/venus/` (events, portal submissions, last_run.log) |
 | PHONEPHREAK | `/root/loot/phonephreak/` (`.txt` + `.json`) |
 | GITGREP | `/root/loot/gitgrep/` (`.txt` + `.json` + `.csv` + preview) |
 | VENOM | `/root/loot/venom/` |
@@ -269,6 +297,7 @@ Each payload also offers to install its own missing dependencies on first run.
 ├── mirrorcast/                  Cast & print honeypot
 ├── iotjack/                     IoT exploitation framework
 ├── pwrlvl9000/                  Web pentest console
+├── venus/                       Rogue-AP flytrap
 ├── phonephreak/                 Phone-number OSINT
 ├── gitgrep/                     GitHub / git secret hunter
 ├── FlockAudit/                  Flock Safety LPR camera audit
@@ -289,8 +318,8 @@ Each payload also offers to install its own missing dependencies on first run.
   back to the classic `iw` monitor toggle where supported.
 - No destructive persistence: cleanup traps stop services, remove temporary
   interfaces, and restore display state.
-- The only bundled binary is PWRLVL9000's `libpagerctl.so` (mipsel); everything
-  else is shell or pure Python.
+- The only bundled binaries are `libpagerctl.so` (mipsel) used by PWRLVL9000
+  and VENUS; everything else is shell or pure Python.
 
 ---
 
