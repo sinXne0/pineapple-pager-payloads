@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/firmware-2.0.0--stable-6b3fa0?style=for-the-badge" alt="Firmware 2.0.0-stable">
   <img src="https://img.shields.io/badge/platform-mipsel-7a5cff?style=for-the-badge" alt="mipsel">
-  <img src="https://img.shields.io/badge/payloads-12-ff2fd6?style=for-the-badge" alt="12 payloads">
+  <img src="https://img.shields.io/badge/payloads-13-ff2fd6?style=for-the-badge" alt="13 payloads">
   <img src="https://img.shields.io/badge/license-MIT-d1acff?style=for-the-badge" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-8b5cf6?style=for-the-badge" alt="PRs welcome">
 </p>
@@ -57,6 +57,7 @@ Every payload is built around the same rules:
 | 🐙 **GITGREP** | Recon | GitHub / git secret hunter, 35+ detectors, masked reports, reuse detection | 2.0.0+ | [Docs](gitgrep/README.md) |
 | 🎥 **FlockAudit** | Recon | Flock Safety LPR camera detection + KML export | Classic Pineapple | [Docs](FlockAudit/README.md) |
 | 📊 **Recon Reporter** | Recon | CSV + JSON recon exports from the Recon UI | Pager | [Docs](library/recon/general/recon_reporter/README.md) |
+| 🎯 **SCALPEL** | Recon | Surgical WPA/WPA2 handshake capture — channel lock + targeted deauth → hashcat `.22000` | 2.0.0+ | [Docs](library/recon/access_point/scalpel/README.md) |
 | 🎭 **VENOM** | Exfiltration | Rogue WPA-Enterprise AP, EAP identity + credential capture | Pager | [Docs](venom/README.md) |
 | 🕵️ **Sherlock** | OSINT | Username hunt across 80+ platforms | Pager | [Docs](Sherlock/README.md) |
 | ⚡ **Auto Handshake Cracker** | Alerts | Auto-crack captured WPA handshakes | Pager | [Docs](autocrack/alerts/handshake_captured/auto_crack/README.md) |
@@ -285,6 +286,7 @@ Each payload also offers to install its own missing dependencies on first run.
 | Sherlock | `/root/loot/sherlock/` |
 | FlockAudit | `/root/loot/FlockAudit/` (report + KML) |
 | Recon Reporter | `/root/loot/recon_reports/` (CSV + JSON) |
+| SCALPEL | `/root/loot/handshakes/` (native `.pcap` + `.22000`) |
 | Handshake Cracker | `/root/cracked_passwords.txt` |
 
 ---
@@ -305,6 +307,7 @@ Each payload also offers to install its own missing dependencies on first run.
 ├── Sherlock/                    Username OSINT
 ├── autocrack/                   Handshake cracking + wordlists
 ├── library/recon/general/       Recon Reporter payload
+├── library/recon/access_point/  SCALPEL surgical handshake capture
 ├── CONTRIBUTING.md
 └── LICENSE
 ```
