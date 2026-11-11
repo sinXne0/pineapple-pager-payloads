@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/firmware-2.0.0--stable-6b3fa0?style=for-the-badge" alt="Firmware 2.0.0-stable">
   <img src="https://img.shields.io/badge/platform-mipsel-7a5cff?style=for-the-badge" alt="mipsel">
-  <img src="https://img.shields.io/badge/payloads-13-ff2fd6?style=for-the-badge" alt="13 payloads">
+  <img src="https://img.shields.io/badge/payloads-14-ff2fd6?style=for-the-badge" alt="14 payloads">
   <img src="https://img.shields.io/badge/license-MIT-d1acff?style=for-the-badge" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-8b5cf6?style=for-the-badge" alt="PRs welcome">
 </p>
@@ -246,6 +246,7 @@ Launch any payload from **Payloads → User Payloads** on the Pager.
 | VENUS | `python3-light`, `hostapd`, `iw` | `python3-ctypes` (on-device UI), `aireplay-ng` (lure) |
 | PHONEPHREAK | `python3-light` | `python3-openssl` for the online footprint check |
 | GITGREP | `python3-light`, `curl` | `git` + `git-http` for history mode |
+| SCALPEL | — (native recon commands) | — |
 | VENOM | `wpad-openssl`, `openssl-util`, `iw` | `tcpdump` |
 | Handshake tooling | `aircrack-ng` | — |
 | Sherlock | `curl` | — |
