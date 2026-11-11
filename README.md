@@ -57,7 +57,7 @@ Every payload is built around the same rules:
 | 🐙 **GITGREP** | Recon | GitHub / git secret hunter, 35+ detectors, masked reports, reuse detection | 2.0.0+ | [Docs](gitgrep/README.md) |
 | 🎥 **FlockAudit** | Recon | Flock Safety LPR camera detection + KML export | Classic Pineapple | [Docs](FlockAudit/README.md) |
 | 📊 **Recon Reporter** | Recon | CSV + JSON recon exports from the Recon UI | Pager | [Docs](library/recon/general/recon_reporter/README.md) |
-| 🎯 **SCALPEL** | Recon | Surgical WPA/WPA2 handshake capture — channel lock + targeted deauth → hashcat `.22000` | 2.0.0+ | [Docs](library/recon/access_point/scalpel/README.md) |
+| 🎯 **SCALPEL** | Recon | Surgical WPA/WPA2 handshake capture — channel lock + targeted deauth → hashcat `.22000` | 2.0.0+ | [Docs](scalpel/README.md) |
 | 🎭 **VENOM** | Exfiltration | Rogue WPA-Enterprise AP, EAP identity + credential capture | Pager | [Docs](venom/README.md) |
 | 🕵️ **Sherlock** | OSINT | Username hunt across 80+ platforms | Pager | [Docs](Sherlock/README.md) |
 | ⚡ **Auto Handshake Cracker** | Alerts | Auto-crack captured WPA handshakes | Pager | [Docs](autocrack/alerts/handshake_captured/auto_crack/README.md) |
@@ -303,12 +303,12 @@ Each payload also offers to install its own missing dependencies on first run.
 ├── venus/                       Rogue-AP flytrap
 ├── phonephreak/                 Phone-number OSINT
 ├── gitgrep/                     GitHub / git secret hunter
+├── scalpel/                     Surgical handshake capture
 ├── FlockAudit/                  Flock Safety LPR camera audit
 ├── venom/                       WPA-Enterprise credential harvester
 ├── Sherlock/                    Username OSINT
 ├── autocrack/                   Handshake cracking + wordlists
 ├── library/recon/general/       Recon Reporter payload
-├── library/recon/access_point/  SCALPEL surgical handshake capture
 ├── CONTRIBUTING.md
 └── LICENSE
 ```
